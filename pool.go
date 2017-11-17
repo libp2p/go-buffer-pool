@@ -40,9 +40,7 @@ const MaxLength = 1 << 32
 // Pool is a pool to handle cases of reusing elements of varying sizes.
 // It maintains up to  32 internal pools, for each power of 2 in 0-32.
 type Pool struct {
-	small      int            // the size of the first pool
-	pools      [32]*sync.Pool // a list of singlePools
-	sync.Mutex                // protecting list
+	pools [32]sync.Pool // a list of singlePools
 
 	// New is a function that constructs a new element in the pool, with given len
 	New func(len int) interface{}
@@ -52,16 +50,7 @@ func (p *Pool) getPool(idx uint32) *sync.Pool {
 	if idx > uint32(len(p.pools)) {
 		panic(fmt.Errorf("index too large: %d", idx))
 	}
-
-	p.Lock()
-	defer p.Unlock()
-
-	sp := p.pools[idx]
-	if sp == nil {
-		sp = new(sync.Pool)
-		p.pools[idx] = sp
-	}
-	return sp
+	return &p.pools[idx]
 }
 
 // Get selects an arbitrary item from the Pool, removes it from the Pool,
