@@ -236,19 +236,21 @@ func BenchmarkPoolOverlflow(b *testing.B) {
 	})
 }
 
-func ExamplePool() {
-	var p Pool
-
-	small := make([]byte, 1024)
-	large := make([]byte, 4194304)
-	p.Put(uint32(len(small)), small)
-	p.Put(uint32(len(large)), large)
-
-	small2 := p.Get(uint32(len(small))).([]byte)
-	large2 := p.Get(uint32(len(large))).([]byte)
-	fmt.Println("small2 len:", len(small2))
-	fmt.Println("large2 len:", len(large2))
-	// Output:
-	// small2 len: 1024
-	// large2 len: 4194304
-}
+// DISABLED: This example is *not* guaranteed to work. This buffer pool can
+// choose to ignore the interior pool and return `nil`.
+//func ExamplePool() {
+//	var p Pool
+//
+//	small := make([]byte, 1024)
+//	large := make([]byte, 4194304)
+//	p.Put(uint32(len(small)), small)
+//	p.Put(uint32(len(large)), large)
+//
+//	small2 := p.Get(uint32(len(small))).([]byte)
+//	large2 := p.Get(uint32(len(large))).([]byte)
+//	fmt.Println("small2 len:", len(small2))
+//	fmt.Println("large2 len:", len(large2))
+//	// Output:
+//	// small2 len: 1024
+//	// large2 len: 4194304
+//}
