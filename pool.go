@@ -92,7 +92,7 @@ func nextPowerOfTwo(v uint32) uint32 {
 	// fmt.Printf("-> %d", v)
 
 	i := uint32(0)
-	for i = 0; v > 1; i++ {
+	for ; v > 1; i++ {
 		v = v >> 1
 	}
 
