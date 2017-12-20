@@ -1,16 +1,16 @@
-// Package mpool provides a sync.Pool equivalent that buckets incoming
+// Package pool provides a sync.Pool equivalent that buckets incoming
 // requests to one of 32 sub-pools, one for each power of 2, 0-32.
 //
-//	import "github.com/libp2p/go-msgio/mpool"
-//	var p mpool.Pool
+//	import (pool "github.com/libp2p/go-buffer-pool")
+//	var p pool.BufferPool
 //
 //	small := make([]byte, 1024)
 //	large := make([]byte, 4194304)
-//	p.Put(1024, small)
-//	p.Put(4194304, large)
+//	p.Put(small)
+//	p.Put(large)
 //
-//	small2 := p.Get(1024).([]byte)
-//	large2 := p.Get(4194304).([]byte)
+//	small2 := p.Get(1024)
+//	large2 := p.Get(4194304)
 //	fmt.Println("small2 len:", len(small2))
 //	fmt.Println("large2 len:", len(large2))
 //
@@ -21,92 +21,75 @@
 package pool
 
 import (
-	"fmt"
+	"math/bits"
 	"sync"
 )
 
-// ByteSlicePool is a static Pool for reusing byteslices of various sizes.
-var ByteSlicePool = &Pool{
-	New: func(length int) interface{} {
-		return make([]byte, length)
-	},
-}
+// GlobalPool is a static Pool for reusing byteslices of various sizes.
+var GlobalPool = new(BufferPool)
 
 // MaxLength is the maximum length of an element that can be added to the Pool.
 const MaxLength = 1 << 32
 
-// Pool is a pool to handle cases of reusing elements of varying sizes.
-// It maintains up to  32 internal pools, for each power of 2 in 0-32.
-type Pool struct {
-	pools [32]sync.Pool // a list of singlePools
-
-	// New is a function that constructs a new element in the pool, with given len
-	New func(len int) interface{}
-}
-
-func (p *Pool) getPool(idx uint32) *sync.Pool {
-	if idx > uint32(len(p.pools)) {
-		panic(fmt.Errorf("index too large: %d", idx))
-	}
-	return &p.pools[idx]
-}
-
-// Get selects an arbitrary item from the Pool, removes it from the Pool,
-// and returns it to the caller. Get may choose to ignore the pool and
-// treat it as empty. Callers should not assume any relation between values
-// passed to Put and the values returned by Get.
+// BufferPool is a pool to handle cases of reusing elements of varying sizes. It
+// maintains 32 internal pools, for each power of 2 in 0-32.
 //
-// If Get would otherwise return nil and p.New is non-nil, Get returns the
-// result of calling p.New.
-func (p *Pool) Get(length uint32) interface{} {
-	idx := nextPowerOfTwo(length)
-	sp := p.getPool(idx)
-	// fmt.Printf("Get(%d) idx(%d)\n", length, idx)
-	val := sp.Get()
-	if val == nil && p.New != nil {
-		val = p.New(0x1 << idx)
+// You should generally just call the package level Get and Put methods or use
+// the GlobalPool BufferPool instead of constructing your own.
+//
+// You MUST NOT copy Pool after using.
+type BufferPool struct {
+	pools [32]sync.Pool // a list of singlePools
+}
+
+// Get retrieves a buffer of the appropriate length from the buffer pool or
+// allocates a new one. Get may choose to ignore the pool and treat it as empty.
+// Callers should not assume any relation between values passed to Put and the
+// values returned by Get.
+//
+// If no suitable buffer exists in the pool, Get creates one.
+func (p *BufferPool) Get(length uint32) []byte {
+	if length == 0 {
+		return nil
 	}
-	return val
+	idx := nextLogBase2(length)
+	if buf := p.pools[idx].Get(); buf != nil {
+		return buf.([]byte)[:length]
+	}
+	return make([]byte, 1<<idx)[:length]
 }
 
 // Put adds x to the pool.
-func (p *Pool) Put(length uint32, val interface{}) {
-	idx := prevPowerOfTwo(length)
-	// fmt.Printf("Put(%d, -) idx(%d)\n", length, idx)
-	sp := p.getPool(idx)
-	sp.Put(val)
+func (p *BufferPool) Put(buf []byte) {
+	capacity := cap(buf)
+	if capacity == 0 || capacity > MaxLength {
+		return // drop it
+	}
+	idx := prevLogBase2(uint32(capacity))
+	p.pools[idx].Put(buf)
 }
 
-func nextPowerOfTwo(v uint32) uint32 {
-	// fmt.Printf("nextPowerOfTwo(%d) ", v)
-	v--
-	v |= v >> 1
-	v |= v >> 2
-	v |= v >> 4
-	v |= v >> 8
-	v |= v >> 16
-	v++
-
-	// fmt.Printf("-> %d", v)
-
-	i := uint32(0)
-	for ; v > 1; i++ {
-		v = v >> 1
-	}
-
-	// fmt.Printf("-> %d\n", i)
-	return i
+// Get retrieves a buffer of the appropriate length from the global buffer pool
+// (or allocates a new one).
+func Get(length uint32) []byte {
+	return GlobalPool.Get(length)
 }
 
-func prevPowerOfTwo(num uint32) uint32 {
-	next := nextPowerOfTwo(num)
-	// fmt.Printf("prevPowerOfTwo(%d) next: %d", num, next)
-	switch {
-	case num == (1 << next): // num is a power of 2
-	case next == 0:
-	default:
-		next = next - 1 // smaller
+// Put returns a buffer to the global buffer pool.
+func Put(slice []byte) {
+	GlobalPool.Put(slice)
+}
+
+// Log of base two, round up (for v > 0).
+func nextLogBase2(v uint32) uint32 {
+	return uint32(bits.Len32(v - 1))
+}
+
+// Log of base two, round down (for v > 0)
+func prevLogBase2(num uint32) uint32 {
+	next := nextLogBase2(num)
+	if num == (1 << uint32(next)) {
+		return next
 	}
-	// fmt.Printf(" = %d\n", next)
-	return next
+	return next - 1
 }
