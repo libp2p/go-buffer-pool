@@ -144,3 +144,13 @@ func BenchmarkPoolOverlflow(b *testing.B) {
 		}
 	})
 }
+
+func ExampleGet() {
+	buf := Get(100)
+	fmt.Println("length", len(buf))
+	fmt.Println("capacity", cap(buf))
+	Put(buf)
+	// Output:
+	// length 100
+	// capacity 128
+}
