@@ -253,11 +253,18 @@ func (b *Buffer) Read(buf []byte) (int, error) {
 }
 
 func (b *Buffer) shrink() {
+	c := b.Cap()
+	// Either nil or bootstrap.
+	if c <= len(b.bootstrap) {
+		return
+	}
+
 	l := b.Len()
 	if l == 0 {
+		// Shortcut if empty.
 		b.returnBuf()
 		b.rOff = 0
-	} else if l*8 < b.Cap() {
+	} else if l*8 < c {
 		// Only shrink when capacity > 8x length. Avoids shrinking too aggressively.
 		newBuf := b.getBuf(l)
 		copy(newBuf, b.buf[b.rOff:])
