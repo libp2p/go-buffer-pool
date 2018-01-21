@@ -42,3 +42,4 @@ Small note: If editing the Readme, please conform to the [standard-readme](https
 ## License
 
 MIT © Protocol Labs
+BSD © The Go Authors
