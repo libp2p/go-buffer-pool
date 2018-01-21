@@ -102,7 +102,7 @@ func (b *Buffer) getPool() *BufferPool {
 }
 
 func (b *Buffer) returnBuf() {
-	if cap(b.buf) > 0 && &b.buf[:1][0] != &b.bootstrap[0] {
+	if cap(b.buf) > len(b.bootstrap) {
 		b.getPool().Put(b.buf)
 	}
 	b.buf = nil
