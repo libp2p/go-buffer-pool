@@ -235,7 +235,34 @@ func (b *Buffer) WriteTo(w io.Writer) (int64, error) {
 	return 0, nil
 }
 
-// TODO: implement ReadFrom
+// MinRead is the minimum slice size passed to a Read call by
+// Buffer.ReadFrom. As long as the Buffer has at least MinRead bytes beyond
+// what is required to hold the contents of r, ReadFrom will not grow the
+// underlying buffer.
+const MinRead = 512
+
+// ReadFrom reads from the given reader into the buffer.
+func (b *Buffer) ReadFrom(r io.Reader) (int64, error) {
+	n := int64(0)
+	for {
+		wOff := b.grow(MinRead)
+		// Use *entire* buffer.
+		b.buf = b.buf[:cap(b.buf)]
+
+		read, err := r.Read(b.buf[wOff:])
+		b.buf = b.buf[:wOff+read]
+		n += int64(read)
+		switch err {
+		case nil:
+		case io.EOF:
+			err = nil
+			fallthrough
+		default:
+			b.shrink()
+			return n, err
+		}
+	}
+}
 
 // Read reads at most `len(buf)` bytes from the internal buffer into the given
 // buffer.

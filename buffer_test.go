@@ -239,7 +239,6 @@ func TestNil(t *testing.T) {
 	}
 }
 
-/*
 func TestReadFrom(t *testing.T) {
 	var buf Buffer
 	for i := 3; i < 30; i += 3 {
@@ -249,7 +248,6 @@ func TestReadFrom(t *testing.T) {
 		empty(t, "TestReadFrom (2)", &b, s, make([]byte, len(data)))
 	}
 }
-*/
 
 func TestWriteTo(t *testing.T) {
 	var buf Buffer
