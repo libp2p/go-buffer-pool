@@ -8,7 +8,7 @@
   },
   "gxVersion": "0.12.1",
   "language": "go",
-  "license": "",
+  "license": "MIT+BSD",
   "name": "go-buffer-pool",
   "releaseCmd": "git commit -a -m \"gx publish $VERSION\"",
   "version": "0.1.0"
