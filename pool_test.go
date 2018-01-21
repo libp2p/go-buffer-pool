@@ -65,7 +65,7 @@ func TestPoolStressByteSlicePool(t *testing.T) {
 
 	const P = 10
 	chs := 10
-	maxSize := uint32(1 << 16)
+	maxSize := 1 << 16
 	N := int(1e4)
 	if testing.Short() {
 		N /= 100
@@ -77,18 +77,18 @@ func TestPoolStressByteSlicePool(t *testing.T) {
 			ch := make(chan []byte, chs+1)
 
 			for i := 0; i < chs; i++ {
-				j := rand.Uint32() % maxSize
+				j := rand.Int() % maxSize
 				ch <- p.Get(j)
 			}
 
 			for j := 0; j < N; j++ {
-				r := uint32(0)
+				r := 0
 				for i := 0; i < chs; i++ {
 					v := <-ch
 					p.Put(v)
-					r = rand.Uint32() % maxSize
+					r = rand.Int() % maxSize
 					v = p.Get(r)
-					if uint32(len(v)) < r {
+					if len(v) < r {
 						errs <- fmt.Errorf("expect len(v) >= %d, got %d", j, len(v))
 					}
 					ch <- v
@@ -115,7 +115,7 @@ func TestPoolStressByteSlicePool(t *testing.T) {
 func BenchmarkPool(b *testing.B) {
 	var p BufferPool
 	b.RunParallel(func(pb *testing.PB) {
-		i := uint32(7)
+		i := 7
 		for pb.Next() {
 			if i > 1<<20 {
 				i = 7
@@ -135,7 +135,7 @@ func BenchmarkPoolOverlflow(b *testing.B) {
 			bufs := make([][]byte, 2100)
 			for pow := uint32(0); pow < 21; pow++ {
 				for i := 0; i < 100; i++ {
-					bufs = append(bufs, p.Get(uint32(1<<pow)))
+					bufs = append(bufs, p.Get(1<<pow))
 				}
 			}
 			for _, b := range bufs {

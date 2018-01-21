@@ -48,15 +48,18 @@ type BufferPool struct {
 // values returned by Get.
 //
 // If no suitable buffer exists in the pool, Get creates one.
-func (p *BufferPool) Get(length uint32) []byte {
+func (p *BufferPool) Get(length int) []byte {
 	if length == 0 {
 		return nil
 	}
-	idx := nextLogBase2(length)
-	if buf := p.pools[idx].Get(); buf != nil {
-		return buf.([]byte)[:length]
+	if length > MaxLength {
+		return make([]byte, length)
 	}
-	return make([]byte, 1<<idx)[:length]
+	idx := nextLogBase2(uint32(length))
+	if buf := p.pools[idx].Get(); buf != nil {
+		return buf.([]byte)[:uint32(length)]
+	}
+	return make([]byte, 1<<idx)[:uint32(length)]
 }
 
 // Put adds x to the pool.
@@ -71,7 +74,7 @@ func (p *BufferPool) Put(buf []byte) {
 
 // Get retrieves a buffer of the appropriate length from the global buffer pool
 // (or allocates a new one).
-func Get(length uint32) []byte {
+func Get(length int) []byte {
 	return GlobalPool.Get(length)
 }
 
