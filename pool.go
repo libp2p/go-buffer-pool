@@ -21,6 +21,7 @@
 package pool
 
 import (
+	"math"
 	"math/bits"
 	"sync"
 )
@@ -29,7 +30,7 @@ import (
 var GlobalPool = new(BufferPool)
 
 // MaxLength is the maximum length of an element that can be added to the Pool.
-const MaxLength = 1 << 32
+const MaxLength = math.MaxInt32
 
 // BufferPool is a pool to handle cases of reusing elements of varying sizes. It
 // maintains 32 internal pools, for each power of 2 in 0-32.
