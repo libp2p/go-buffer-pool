@@ -1,9 +1,10 @@
-sudo: false
+os:
+  - linux
 
 language: go
 
 go:
-  - 1.9.x
+  - 1.11.x
 
 install:
   - make deps
@@ -17,3 +18,5 @@ cache:
 
 notifications:
   email: false
+
+env: GOTFLAGS="-race"
