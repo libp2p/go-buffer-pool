@@ -47,3 +47,7 @@ Small note: If editing the Readme, please conform to the [standard-readme](https
 
 MIT © Protocol Labs
 BSD © The Go Authors
+
+---
+
+The last gx published version of this module was: 0.1.3: QmQDvJoB6aJWN3sjr3xsgXqKCXf4jU5zdMXpDMsBkYVNqa
