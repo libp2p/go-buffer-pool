@@ -21,6 +21,7 @@
 package pool
 
 import (
+	"fmt"
 	"math"
 	"math/bits"
 	"sync"
@@ -64,6 +65,10 @@ func (p *BufferPool) Get(length int) []byte {
 	idx := nextLogBase2(uint32(length))
 	if ptr := p.pools[idx].Get(); ptr != nil {
 		bp := ptr.(*bufp)
+		// assert we have enough capacity in the buffer
+		if length > cap(bp.buf) {
+			panic(fmt.Sprintf("pool buffer too small! length: %d capacity: %d idx: %d", length, cap(bp.buf), idx))
+		}
 		buf := bp.buf[:uint32(length)]
 		bp.buf = nil
 		p.ptrs.Put(ptr)
