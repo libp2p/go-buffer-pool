@@ -74,6 +74,10 @@ func (p *BufferPool) Get(length int) []byte {
 		p.ptrs.Put(ptr)
 		return buf
 	}
+
+	if length > 1<<idx {
+		panic(fmt.Sprintf("new buffer too small! length: %d idx: %d", length, idx))
+	}
 	return make([]byte, 1<<idx)[:uint32(length)]
 }
 
