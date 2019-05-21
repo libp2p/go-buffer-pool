@@ -139,7 +139,23 @@ func BenchmarkPool(b *testing.B) {
 				i = i << 1
 			}
 			b := p.Get(i)
+			b[0] = byte(i)
 			p.Put(b)
+		}
+	})
+}
+
+func BenchmarkAlloc(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		i := 7
+		for pb.Next() {
+			if i > 1<<20 {
+				i = 7
+			} else {
+				i = i << 1
+			}
+			b := make([]byte, i)
+			b[1] = byte(i)
 		}
 	})
 }
