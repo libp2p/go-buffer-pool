@@ -32,6 +32,17 @@ func TestAllocations(t *testing.T) {
 	}
 }
 
+func TestRange(t *testing.T) {
+	min := nextLogBase2(1)
+	max := nextLogBase2(uint32(MaxLength))
+	if int(max) != len(GlobalPool.pools)-1 {
+		t.Errorf("expected %d pools, found %d", max, len(GlobalPool.pools))
+	}
+	if min != 0 {
+		t.Errorf("unused min pool")
+	}
+}
+
 func TestPool(t *testing.T) {
 	// disable GC so we can control when it happens.
 	defer debug.SetGCPercent(debug.SetGCPercent(-1))
