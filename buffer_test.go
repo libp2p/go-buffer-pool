@@ -8,7 +8,6 @@ package pool
 
 import (
 	"bytes"
-	"io"
 	"math/rand"
 	"runtime"
 	"testing"
@@ -140,6 +139,9 @@ func TestBasicOperations(t *testing.T) {
 		check(t, "TestBasicOperations (5)", &buf, "ab")
 
 		n, err = buf.Write([]byte(data[2:26]))
+		if err != nil {
+			t.Fatal(err)
+		}
 		if n != 24 {
 			t.Errorf("wrote 25 bytes, but n == %d", n)
 		}
@@ -162,8 +164,7 @@ func TestBasicOperations(t *testing.T) {
 		if c != data[1] {
 			t.Errorf("ReadByte wrong value c=%v", c)
 		}
-		c, err = buf.ReadByte()
-		if err == nil {
+		if _, err = buf.ReadByte(); err == nil {
 			t.Error("ReadByte unexpected not eof")
 		}
 	}
@@ -290,21 +291,6 @@ func TestNext(t *testing.T) {
 			}
 		}
 	}
-}
-
-var readBytesTests = []struct {
-	buffer   string
-	delim    byte
-	expected []string
-	err      error
-}{
-	{"", 0, []string{""}, io.EOF},
-	{"a\x00", 0, []string{"a\x00"}, nil},
-	{"abbbaaaba", 'b', []string{"ab", "b", "b", "aaab"}, nil},
-	{"hello\x01world", 1, []string{"hello\x01"}, nil},
-	{"foo\nbar", 0, []string{"foo\nbar"}, io.EOF},
-	{"alpha\nbeta\ngamma\n", '\n', []string{"alpha\n", "beta\n", "gamma\n"}, nil},
-	{"alpha\nbeta\ngamma", '\n', []string{"alpha\n", "beta\n", "gamma"}, io.EOF},
 }
 
 func TestGrow(t *testing.T) {
