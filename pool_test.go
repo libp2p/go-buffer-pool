@@ -82,6 +82,8 @@ func TestPool(t *testing.T) {
 
 	debug.SetGCPercent(100) // to allow following GC to actually run
 	runtime.GC()
+	// For some reason, you need to run GC twice on go 1.16 if you want it to reliably work.
+	runtime.GC()
 	if g := p.Get(10); &g[0] == &a[0] {
 		t.Fatalf("got a; want new slice after GC")
 	}
