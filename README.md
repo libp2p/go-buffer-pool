@@ -12,15 +12,18 @@ go-buffer-pool
 
 ## Table of Contents
 
-- [Use Case](#use-case)
+- [About](#about)
     - [Advantages over GC](#advantages-over-gc)
     - [Disadvantages over GC:](#disadvantages-over-gc)
 - [Contribute](#contribute)
 - [License](#license)
 
-## Use Case
+## About
 
-Use this when you need to repeatedly allocate and free a bunch of temporary buffers of approximately the same size.
+This library provides:
+
+1. A buffer pool for re-using byte buffers of _varying_ sizes. Unlike `sync.Pool`, this pool will always return an appropriately sized buffer (the next power of two) so it's appropriate for applications that need to pool dynamically sized buffers.
+2. A `bytes.Buffer` implementation backed by a buffer pool. Unlike `bytes.Buffer`, `pool.Buffer` will automatically "shrink" on read, using the buffer pool to avoid causing too much work for the allocator. This is primarily useful for long lived buffers that usually sit empty.
 
 ### Advantages over GC
 
@@ -34,8 +37,8 @@ Use this when you need to repeatedly allocate and free a bunch of temporary buff
 ### Disadvantages over GC:
 
 * Can leak memory contents. Unlike the go GC, we *don't* zero memory.
-* All buffers have a capacity of a power of 2. This is fine if you either (a) actually need buffers with this size or (b) expect these buffers to be temporary.
-* Requires that buffers be returned explicitly. This can lead to race conditions and memory corruption if the buffer is released while it's still in use.
+* All buffers have a capacity of a power of 2. This is fine if you either expect these buffers to be temporary.
+* Requires that buffers be explicitly put back into the pool. This can lead to race conditions and memory corruption if the buffer is released while it's still in use.
 
 ## Contribute
 
