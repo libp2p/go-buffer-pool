@@ -17,10 +17,10 @@
 //	// Output:
 //	// small2 len: 1024
 //	// large2 len: 4194304
-//
 package pool
 
 import (
+	"fmt"
 	"math"
 	"math/bits"
 	"sync"
@@ -55,8 +55,8 @@ type bufp struct {
 //
 // If no suitable buffer exists in the pool, Get creates one.
 func (p *BufferPool) Get(length int) []byte {
-	if length == 0 {
-		return nil
+	if length <= 0 {
+		panic(fmt.Sprintf("length must be > 0, got: %d", length))
 	}
 	if length > MaxLength {
 		return make([]byte, length)

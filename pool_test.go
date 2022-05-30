@@ -117,6 +117,9 @@ func TestPoolStressByteSlicePool(t *testing.T) {
 					v := <-ch
 					p.Put(v)
 					r = rand.Int() % maxSize
+					if r == 0 {
+						r = 1
+					}
 					v = p.Get(r)
 					if len(v) < r {
 						errs <- fmt.Errorf("expect len(v) >= %d, got %d", j, len(v))
@@ -199,4 +202,25 @@ func ExampleGet() {
 	// Output:
 	// length 100
 	// capacity 128
+}
+
+func getAndCatchPanic(i int) (b []byte, r interface{}) {
+	defer func() {
+		r = recover()
+	}()
+	b = Get(i)
+	return
+}
+
+func TestBufferPoolGetWithNegativeValue(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		b, rpanic := getAndCatchPanic(-i)
+		if rpanic == nil {
+			t.Fatal("Expected a panic from a negative value")
+		}
+		if b != nil {
+			t.Fatalf("Iteration #%d returned non-nil byte slice of size: %d", i, len(b))
+		}
+		Put(b)
+	}
 }
