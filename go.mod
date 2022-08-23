@@ -1,3 +1,3 @@
 module github.com/libp2p/go-buffer-pool
 
-go 1.17
+go 1.18
