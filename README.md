@@ -22,7 +22,7 @@ go-buffer-pool
 
 This library provides:
 
-1. A buffer pool for re-using byte buffers of _varying_ sizes. Unlike `sync.Pool`, this pool will always return an appropriately sized buffer (the next power of two) so it's appropriate for applications that need to pool dynamically sized buffers.
+1. `BufferPool`: A pool for re-using byte slices of varied sizes. This pool will always return a slice with at least the size requested and a capacity up to the next power of two. Each size class is pooled independently which makes the `BufferPool` more space efficient than a plain `sync.Pool` when used in situations where data size may vary over an arbitrary range. 
 2. A `bytes.Buffer` implementation backed by a buffer pool. Unlike `bytes.Buffer`, `pool.Buffer` will automatically "shrink" on read, using the buffer pool to avoid causing too much work for the allocator. This is primarily useful for long lived buffers that usually sit empty.
 
 ### Advantages over GC
