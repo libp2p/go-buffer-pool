@@ -37,7 +37,7 @@ This library provides:
 ### Disadvantages over GC:
 
 * Can leak memory contents. Unlike the go GC, we *don't* zero memory.
-* All buffers have a capacity of a power of 2. This is fine if you either expect these buffers to be temporary.
+* All buffers have a capacity of a power of 2. This is fine if you either expect these buffers to be temporary or you need buffers of this size.
 * Requires that buffers be explicitly put back into the pool. This can lead to race conditions and memory corruption if the buffer is released while it's still in use.
 
 ## Contribute
